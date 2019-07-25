@@ -1,0 +1,168 @@
+---
+AWSTemplateFormatVersion: '2010-09-09'
+
+Description:  This template deploys a VPC, with a pair of interconnect, application and data subnets spread
+  across two Availability Zones.
+
+Parameters:
+  VpcCIDR:
+    Description: Please enter the IP range (CIDR notation) for this VPC
+    Type: String
+    Default: 10.192.0.0/16
+    MinLength: '10'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+
+  InterconnectSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for the interconnect subnet in the first Availability Zone
+    Type: String
+    Default: 10.192.10.0/24
+    MinLength: '10'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+
+  InterconnectSubnet2CIDR:
+    Description: Please enter the IP range (CIDR notation) for the interconnect subnet in the second Availability Zone
+    Type: String
+    Default: 10.192.11.0/24
+    MinLength: '10'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+
+  ApplicationSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for the application subnet in the first Availability Zone
+    Type: String
+    Default: 10.192.20.0/24
+    MinLength: '10'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+
+  ApplicationSubnet2CIDR:
+    Description: Please enter the IP range (CIDR notation) for the application subnet in the second Availability Zone
+    Type: String
+    Default: 10.192.21.0/24
+    MinLength: '10'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+   
+  DataSubnet1CIDR:
+    Description: Please enter the IP range (CIDR notation) for the data subnet in the first Availability Zone
+    Type: String
+    Default: 10.192.30.0/24
+    MinLength: '10'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"
+
+  DataSubnet2CIDR:
+    Description: Please enter the IP range (CIDR notation) for the data subnet in the second Availability Zone
+    Type: String
+    Default: 10.192.31.0/24
+    MinLength: '10'
+    MaxLength: '18'
+    AllowedPattern: "(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})\\.(\\d{1,3})/(\\d{1,2})"  
+
+Resources:
+  VPC:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCIDR
+      Tags:
+        - Key: Name
+          Value: ApplicationVpc
+
+  InterconnectSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs '' ]
+      CidrBlock: !Ref InterconnectSubnet1CIDR
+      Tags:
+        - Key: Name
+          Value: Interconnect Subnet (AZ1)
+
+  InterconnectSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref InterconnectSubnet2CIDR
+      Tags:
+        - Key: Name
+          Value: Interconnect Subnet (AZ2)
+
+  ApplicationSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Ref ApplicationSubnet1CIDR
+      Tags:
+        - Key: Name
+          Value: Application Subnet (AZ1)
+
+  ApplicationSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref ApplicationSubnet2CIDR
+      Tags:
+        - Key: Name
+          Value: Application Subnet (AZ2)
+
+  DataSubnet1:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 0, !GetAZs  '' ]
+      CidrBlock: !Ref DataSubnet1CIDR
+      Tags:
+        - Key: Name
+          Value: Data Subnet (AZ1)
+
+  DataSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref VPC
+      AvailabilityZone: !Select [ 1, !GetAZs  '' ]
+      CidrBlock: !Ref DataSubnet2CIDR
+      Tags:
+        - Key: Name
+          Value: Data Subnet (AZ2)
+
+  InterconnectRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref VPC
+      Tags:
+        - Key: Name
+          Value: Interconnect Routes
+
+  InterconnectSubnet1RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref InterconnectRouteTable
+      SubnetId: !Ref InterconnectSubnet1
+
+  InterconnectSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref InterconnectRouteTable
+      SubnetId: !Ref InterconnectSubnet2
+
+Outputs:
+  VPC:
+    Description: A reference to the created VPC
+    Value: !Ref VPC
+
+  InterconnectSubnets:
+    Description: A list of the interconnect subnets
+    Value: !Join [ ",", [ !Ref InterconnectSubnet1, !Ref InterconnectSubnet2 ]]
+
+  ApplicationSubnets:
+    Description: A list of the application subnets
+    Value: !Join [ ",", [ !Ref ApplicationSubnet1, !Ref ApplicationSubnet2 ]]
+
+  DataSubnets:
+    Description: A list of the data subnets
+    Value: !Join [ ",", [ !Ref DataSubnet1, !Ref DataSubnet2 ]]
