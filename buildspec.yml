@@ -1,22 +1,11 @@
----
-AWSTemplateFormatVersion: '2010-09-09'
+version: 0.2
 
-Description:  This template deploys a VPC, with a pair of interconnect, application and data subnets spread
-  across two Availability Zones.
-
-
-Resources:
-  VPC:
-    Type: AWS::EC2::VPC
-    Properties:
-      CidrBlock: !Ref VpcCIDR
-      EnableDnsSupport: true
-      EnableDnsHostnames: true
-      Tags:
-        - Key: Name
-          Value: Dev
-
-Outputs:
-  VPC:
-    Description: A reference to the created VPC
-    Value: Devv
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+  build:
+    commands:
+      - echo Run unit test
+    commands:
+      - echo Build completed 
