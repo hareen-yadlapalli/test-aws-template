@@ -1,11 +1,12 @@
 version: 0.2
 
-phases:
-  pre_build:
-    commands:
-      - echo Logging in to Amazon ECR...
-  build:
-    commands:
-      - echo Run unit test
-    commands:
-      - echo Build completed 
+myVPC:
+  Type: AWS::EC2::VPC
+  Properties:
+    CidrBlock: 10.0.0.0/16
+    EnableDnsSupport: 'false'
+    EnableDnsHostnames: 'false'
+    InstanceTenancy: dedicated
+    Tags:
+     - Key: foo
+       Value: bar
